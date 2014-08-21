@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/websocket"
 )
 
 type Result interface {
@@ -100,7 +100,7 @@ func (r ErrorResult) Apply(req *Request, resp *Response) {
 		resp.WriteHeader(status, contentType)
 		b.WriteTo(resp.Out)
 	} else {
-		websocket.Message.Send(req.Websocket, fmt.Sprint(revelError))
+		req.Websocket.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseInvalidFramePayloadData, revelError.Error()), time.Time{})
 	}
 
 }

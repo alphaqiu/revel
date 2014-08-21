@@ -2,7 +2,7 @@ package revel
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/websocket"
 	"fmt"
 	"net/http"
 	"sort"

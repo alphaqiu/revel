@@ -1,7 +1,7 @@
 package revel
 
 import (
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/websocket"
 	"fmt"
 	"io"
 	"net"
@@ -23,10 +23,29 @@ var (
 func handle(w http.ResponseWriter, r *http.Request) {
 	upgrade := r.Header.Get("Upgrade")
 	if upgrade == "websocket" || upgrade == "Websocket" {
-		websocket.Handler(func(ws *websocket.Conn) {
+		var upgrader = websocket.Upgrader{
+			ReadBufferSize: 4096,
+			WriteBufferSize: 4096,
+			CheckOrigin: func(req *http.Request) bool {
+				if strings.HasPrefix(req.Header.Get("Origin"), "ws://") {
+					return true
+				} else {
+					return false
+				}
+			},
+		}
+		ws, err := upgrader.Upgrade(w, r, nil)
+		if err == nil {
 			r.Method = "WS"
 			handleInternal(w, r, ws)
-		}).ServeHTTP(w, r)
+		} else {
+			var (
+				req  = NewRequest(r)
+				resp = NewResponse(w)
+				c = NewController(req, resp)
+			)
+			c.Response.Out.WriteHeader(405)
+		}
 	} else {
 		handleInternal(w, r, nil)
 	}
